@@ -33,12 +33,7 @@ This program uses **Maven** for dependency management and compilation.
 
 This project requires **Java 17** and **Maven**.
 
-### Clone the repository
-```bash
-git clone <repository-url>
-cd <project-folder>
-```
 
 ### UML Diagram
 
-[![UML](images\hw3CD.svg)](images/hw3CD.svg)
+[![UML](images/hw3CD.svg)](images/hw3CD.svg)
