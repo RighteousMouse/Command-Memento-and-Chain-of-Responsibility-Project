@@ -1,0 +1,371 @@
+@startuml qvj310_Assignment3
+skinparam dpi 100
+skinparam groupInheritance 2
+skinparam classAttributeIconSize 0
+skinparam note {
+  BackgroundColor yellow
+  BorderColor red
+  BorderThickness 10
+  FontSize 20
+  FontStyle bold
+  FontColor #000000
+}
+
+package "hw3.Command" {
+    interface Command {
+        execute() : void
+        undo() : void
+    }
+    note right of Command
+    Momemento is implemented within each indivdual
+    Concrete Command when needed and is marked by adding
+    "memento" to the attribute.
+    end note
+    class Color {
+        -mementoColor: ShapeColors
+        -newColor: ShapeColors
+        -receiver: ShapeManager
+        <<constructor>> + Color(ShapeManager receiver, ShapeColors newColor)
+        + execute() : void
+        + undo() : void (uses mementoColor to restore previous color)
+    }
+    class CommandList {
+        - commands: LinkedList<Command>
+        <<constructor>> + CommandList(LinkedList<Command> commands)
+        + undoCommand() : void
+        + pushCommand() : void
+        + popCommand() : void
+    }
+    class CreateCircle {
+        - newCircle: Circle
+        - receiver: ShapeManager
+        <<constructor>> + CreateCircle(ShapeManager receiver, int radius)
+        + execute() : void
+        + undo() : void (removes newCircle from ShapeManager)
+    }
+    class CreateRectangle {
+        - newRectangle: Rectangle
+        - reciever: ShapeManager
+        <<constructor>> + CreateRectangle(ShapeManager receiver, int width, int height)
+        + execute() : void
+        + undo() : void (removes newRectangle from ShapeManager)
+    }
+    class Delete {
+        - receiver: ShapeManager
+        - mementoShape: Shape
+        <<constructor>> + Delete(ShapeManager receiver)
+        + execute() : void
+        + undo() : void (adds the shape saved by mementoShape)
+    }
+    class Draw {
+        - reciever: ShapeManager
+        <<constructor>> + Draw(ShapeManager receiver)
+       + execute() : void
+       + undo() : void (does nothing)
+    }
+    class DrawScene {
+        - receiever: ShapeManager
+        <<constructor>> + DrawScene(ShapeManager receiver)
+       + exectue() : void
+       + undo() : void (does nothing)
+    }
+    class Move {
+        - receiver: ShapeManager
+        - newX : int
+        - newY : int
+        - mementoX : int
+        - mementoY : int
+        <<constructor>> + Move(ShapeManager receiver, int newX, int newY)
+       + execute() : void
+       + undo() : void (uses mementoX and mementoY move back)
+    }
+    class Select {
+        - receiver: ShapeManager
+        - newID : int
+        - mementoID : int
+        <<constructor>> + Select(ShapeManager receiver, int newID)
+       + execute() : void
+       + undo() : void (selects the mementoID)
+    }
+
+    Command <|.. CreateCircle
+    Command <|.. CreateRectangle
+    Command <|.. Delete
+    Command <|.. Draw
+    Command <|.. DrawScene
+    Command <|.. Move
+    Command <|.. Select
+    Command <|.. Color
+
+    CommandList o-- Command : stores
+
+    Color ..> "hw3.Shapes.ShapeManager"
+    Color ..> "hw3.Shapes.ShapeColors"
+}
+
+package "hw3.Handler" {
+    interface Handler {
+        void setNextHandler(Handler nextHandler)
+        void handleRequest(String[] input)
+    }
+    class Chains {
+        + boolean inSelectChain(String word)
+        + boolean inNonSelectChain(String word)
+        <<enumeration>>
+        MOVE("MOVE")
+        COLOR("COLOR")
+        DRAW("DRAW")
+        DELETE("DRAW")
+        - selectChain: String
+        <<constructor>> SelectChain(String selectChain)
+        + String getSelectChain()
+
+        <<enumeration>>
+        CREATE("CREATE"),
+        SELECT("SELECT"),
+        UNDO("UNDO"),
+        DRAWSCENE("DRAWSCENE")
+        - nonSelectChain: String
+        <<constructor>> NonSelectChain(String nonSelectChain)
+        + String getNonSelectChain()
+    }
+    class ColorHandler {
+        - nextHandler : Handler
+        - receiver : ShapeManager
+        - commandList: CommandList
+        - colorCommand: Color
+        <<constructor>> ColorHandler(ShapeManager receiver, CommandList commandList)
+         + setNextHandler(Handler nextHandler) : void
+        + handleRequest(String[] input) : void
+    }
+
+    class CreateCircHandler {
+        - nextHandler : Handler
+        - createCircleCommand : CreateCircle
+        - commandList : CommandList
+        - receiver : ShapeManager
+        <<constructor>> + CreateCircHandler(ShapeManager receiver, CommandList commandList)
+        + setNextHandler(Handler nextHandler) : void
+        + handleRequest(String[] input) : void
+    }
+
+    class CreateRectHandler {
+        - nextHandler : Handler
+        - createRectCommand : CreateRectangle
+        - commandList : CommandList
+        - receiver : ShapeManager
+        <<constructor>> + CreateRectHandler(ShapeManager receiver, CommandList commandList)
+         + setNextHandler(Handler nextHandler) : void
+        + handleRequest(String[] input) : void
+    }
+
+    class DeleteHandler {
+        - nextHandler : Handler
+        - deleteCommand : Delete
+        - commandList : CommandList
+        - receiver : ShapeManager
+        <<constructor>> + DeleteHandler(ShapeManager receiver, CommandList commandList)
+         + setNextHandler(Handler nextHandler) : void
+        + handleRequest(String[] input) : void
+    }
+
+    class DrawHandler {
+        - nextHandler : Handler
+        - drawCommand : Draw
+        - commandList : CommandList
+        - receiver : ShapeManager
+        <<constructor>> + DrawHandler(ShapeManager receiver, CommandList commandList)
+         + setNextHandler(Handler nextHandler) : void
+        + handleRequest(String[] input) : void
+    }
+
+    class DrawSceneHandler {
+        - nextHandler : Handler
+        - drawSceneCommand : DrawScene
+        - commandList : CommandList
+        - receiver : ShapeManager
+        <<constructor>> + DrawSceneHandler(ShapeManager receiver, CommandList commandList)
+         + setNextHandler(Handler nextHandler) : void
+        + handleRequest(String[] input) : void
+    }
+
+    class MoveHandler {
+        - nextHandler : Handler
+        - moveCommand : Move
+        - commandList : CommandList
+        - receiver : ShapeManager
+        <<constructor>> + MoveHandler(ShapeManager receiver, CommandList commandList)
+         + setNextHandler(Handler nextHandler) : void
+        + handleRequest(String[] input) : void
+    }
+
+    class OrderHandler {
+        - commandList : CommandList
+        - receiver : ShapeManager
+        - firstHandler : Handler
+        <<constructor>> + OrderHandler(ShapeManager receiver, CommandList commandList)
+        + handleInput(String input) : void
+    }
+
+    class SelectHandler {
+        - nextHandler : Handler
+        - selectCommand : Select
+        - commandList : CommandList
+        - receiver : ShapeManager
+        <<constructor>> + SelectHandler(ShapeManager receiver, CommandList commandList)
+         + setNextHandler(Handler nextHandler) : void
+        + handleRequest(String[] input) : void
+    }
+
+    class UndoHandler {
+        - nextHandler : Handler
+        - undoCommand : Undo
+        - commandList : CommandList
+        <<constructor>> + UndoHandler(CommandList commandList)
+         + setNextHandler(Handler nextHandler) : void
+        + handleRequest(String[] input) : void
+    }
+
+    class ValidHandler {
+        - nextHandler : Handler
+        - selectChain : Handler
+        - nonSelectChain : Handler
+        - receiver : ShapeManager
+        - chain : Chains
+        <<constructor>> + ValidHandler(ShapeManager receiver, Handler selectChain, Handler nonSelectChain)
+        + setNextHandler(Handler nextHandler) : void
+        + handleRequest(String[] input) : void
+        + chooseChain(String word) : boolean
+        + shapeSelected() : void
+    }
+
+    Handler <|.. ValidHandler
+
+    note bottom of Handler
+    All handler classes in chain implements Handler
+    OrderHandler DOES NOT
+    end note
+
+    ValidHandler ..> Chains : uses
+
+    ' OrderHandler owns / aggregates all handlers in the chain
+    OrderHandler *-- ValidHandler : firstHandler
+    
+    note right of OrderHandler
+    OrderHandler aggregates all Handlers in the Chain
+    end note
+
+    note right of ValidHandler
+    ValidHandler chooses between:
+    - MoveHandler if a shape is selected
+    - CreateCircHandler if no shape is selected
+    Each Chain Implements the Chain of Responsiblity
+    Design Pattern
+    end note
+
+    ' Chain 1: shape-selected chain
+    ValidHandler o-- MoveHandler : nextHandler
+    MoveHandler o-- ColorHandler : nextHandler
+    ColorHandler o-- DrawHandler : nextHandler
+    DrawHandler o-- DeleteHandler : nextHandler
+    DeleteHandler o-- "end of shape selected chain" : nextHandler
+
+' Chain 2: shape-not-selected chain
+    ValidHandler o-- CreateCircHandler : nextHandler
+    CreateCircHandler o-- CreateRectHandler : nextHandler
+    CreateRectHandler o-- SelectHandler : nextHandler
+    SelectHandler o-- UndoHandler : nextHandler
+    UndoHandler o-- DrawSceneHandler : nextHandler
+    DrawSceneHandler o-- "end of shape not selected chain" : nextHandler
+}
+
+package "hw3.Shapes" {
+    class Shape {
+        - shapeID : int
+        - originX : int
+        - originY : int
+        - color : ShapeColors
+
+        <<constructor>> + Shape(shapeID : int, originX : int, originY : int, color : ShapeColors)
+
+        + getShapeID() : int
+        + setShapeID(shapeID : int) : void
+        + getOriginX() : int
+        + getOriginY() : int
+        + setOrigin(int x, int y) : void
+        + getShapeColor() : ShapeColors
+        + setShapeColor(ShapeColors newColor) : void
+        + displayOrigin() : String
+        + toString() : String
+    }
+    class Circle {
+        - radius : int
+        <<constructor>> + Circle(int shapeID, int radius)
+        + getRadius() : int
+        + setRadius(int radius)
+        + toString() : String
+    }
+    class Rectangle {
+        - width : int
+        - height : int
+        <<constructor>> + Rectangle(int shapeID, int width, int height)
+        + getWidth() : int
+        + setWidth(int width) : int
+        + getHeight() : int
+        + setHeight(int height) : int
+        + toString() : String
+    }
+    class ShapeManager {
+        # shapes : List<Shape>
+        - nextID : int
+        - selectedShapeID : int
+
+        + validShapeID() : boolean
+        + isSelectable(int checkID) : boolean
+        + displayShapes() : void
+        + changeShapeColor(ShapeColors newColor) : void
+        + changeShapeOrigin(int x, int y) : void
+        + getShapes() : List<Shape>
+        + getSelectedShape() : Shape
+        + getSelectedShapeID() : int
+        + setSelectedShapeID(int selectedShapeID) : void
+        + addShape(Shape newShape) : void
+        + removeShape(Shape shape) : void
+        + assignID(Shape shape) : void
+        + incrementID() : void
+        + decrementID() : void
+    }
+    enum ShapeColors {
+        RED("Red")
+        BLUE("Blue")
+        YELLOW("Yellow")
+        ORANGE("Orange")
+        GREEN("Green")
+
+        - color : String
+        <<constructor>> ShapeColors(String color)
+        + setShapeColors(String color) : ShapeColors
+        + inShapeColors(String word) : boolean
+    }
+
+    Circle --|> Shape
+    Rectangle --|> Shape
+    Shape ..> ShapeColors : uses
+    ShapeManager o-- Shape : manages
+}
+
+package "hw3" {
+    class ShapeEditor {
+        <<main>>
+        + main(args : String[]) : void
+    }
+
+    ShapeEditor ..> "hw3.Handler.OrderHandler" : uses
+    ShapeEditor ..> "hw3.Shapes.ShapeManager" : uses
+    ShapeEditor ..> "hw3.Command.CommandList" : uses
+    ShapeEditor --> "java.util.LinkedList<Command>" : uses
+    ShapeEditor --> "java.io.File" : uses
+    ShapeEditor --> "java.util.Scanner" : uses
+}
+
+@enduml
